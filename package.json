@@ -1,0 +1,43 @@
+{
+  "name": "atomic-js",
+  "version": "0.0.1",
+  "description": "Atomic web framework built on top of NuclearJS & VueJS",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/optimizely/atomic"
+  },
+  "author": "Jordan Garcia",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jordangarcia/atomic/issues"
+  },
+  "homepage": "https://github.com/jordangarcia/atomic",
+  "dependencies": {
+    "nuclear-js": "^0.4.x",
+    "nuclear-vue-mixin": "^0.1.x",
+    "vue": "^0.11.x",
+    "lodash": "^2.4.1",
+    "immutable": "^3.0.3",
+    "uuid": "^2.0.1",
+    "jquery": "^2.1.1",
+    "page": "^1.4.1",
+    "backbone-radio-standalone": "^0.1.0"
+  },
+  "devDependencies": {
+    "gulp-shell": "^0.2.9",
+    "html-loader": "^0.2.2",
+    "gulp-connect": "^2.0.6",
+    "webpack": "^1.4.4",
+    "gulp": "^3.8.8",
+    "jstransform-loader": "^0.1.1",
+    "jshint": "^2.5.10",
+    "jshint-loader": "^0.8.0",
+    "jstransform": "^8.2.0",
+    "karma": "^0.12.25",
+    "karma-chrome-launcher": "^0.1.5",
+    "jasmine-core": "^2.1.2",
+    "karma-jasmine": "^0.3.1",
+    "lego": "git+ssh://git@github.com:optimizely/lego"
+  }
+}
