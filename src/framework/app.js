@@ -1,12 +1,12 @@
 var _ = require('lodash')
 var Vue = require('vue')
 var Nuclear = require('nuclear-js')
-var List = require('immutable').List
 var logging = require('./logging')
 var vueSyncMixin = require('./vue-sync-mixin')
 
 var coreModules = {
   ui: require('./ui'),
+  router: require('./router'),
 }
 
 function validateRunOptions(options) {
@@ -24,28 +24,21 @@ class App {
     if (!(this instanceof App)) {
       return new App(config)
     }
-    this.radio = require('./radio')
 
     /**
      * Nuclear Reactor with framework core stores
      */
     this.reactor = Nuclear.Reactor()
 
-    this.router = require('./router')
-
     // rootVM holds all Vue related things such as components, directives, filters, etc
     this.__rootVM = new Vue()
 
-    //this.__modules = {}
+    // list of all module ids
+    this.__modules = []
 
     this.__beforeRunFns = []
 
     this.__afterRunFns = []
-
-    // setup link between radio and Nuclear Reactor
-    this.radio.comply('dispatch', (type, payload) => {
-      this.reactor.dispatch(type, payload)
-    })
 
     _.each(coreModules, (module, id) => {
       this.attachModule(id, module)
@@ -67,8 +60,6 @@ class App {
 
     this.__rootVM.$mount(options.el)
 
-    this.router.start()
-
     while(this.__afterRunFns.length > 0) {
       this.__afterRunFns.shift()(this)
     }
@@ -84,9 +75,12 @@ class App {
       throw new Error("Cannot attach module at this[" + id + "]")
     }
 
+
     logging.log('module started', id, module)
 
     module.start(this)
+
+    this.__modules.push(id)
 
     // expose whatever the module wanted to export
     this[id] = module.getExports(this)
@@ -121,10 +115,23 @@ class App {
   }
 
   /**
-   * Returns a map of moduleId => module
+   * Shortcut to reactor.get
+   * @param {string|array} keypaths
+   * @param {function} computeFn
+   * @return {*}
    */
-  getCoreModules() {
-    return coreModules
+  get() {
+    return this.reactor.get.apply(this.reactor, arguments)
+  }
+
+  /**
+   * Shortcut to reactor.observe
+   * @param {Getter|KeyPath} getter
+   * @param {function} handler
+   * @return {*}
+   */
+  observe(getter, handler) {
+    return this.reactor.observe(getter, handler)
   }
 
   /**
@@ -132,7 +139,7 @@ class App {
    * @param {function} fn
    */
   beforeRun(fn) {
-    this.__beforeRunFns = this.__beforeRunFns.push(fn)
+    this.__beforeRunFns.push(fn)
   }
 
   /**
@@ -140,7 +147,7 @@ class App {
    * @param {function} fn
    */
   afterRun(fn) {
-    this.__afterRunFns = this.__afterRunFns.push(fn)
+    this.__afterRunFns.push(fn)
   }
 
   /**
