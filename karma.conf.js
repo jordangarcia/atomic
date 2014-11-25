@@ -1,5 +1,6 @@
+var path = require('path')
 // Karma configuration
-// Generated on Sat Nov 22 2014 13:57:46 GMT-0500 (EST)
+// Generated on Sun Nov 23 2014 13:04:15 GMT-0500 (EST)
 
 module.exports = function(config) {
   config.set({
@@ -15,8 +16,8 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-      'src/tests/*.spec.js',
-      'src/tests/**/*.spec.js'
+      'tests/**/*tests.js',
+      'tests/*tests.js'
     ],
 
 
@@ -28,17 +29,34 @@ module.exports = function(config) {
     // preprocess matching files before serving them to the browser
     // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
     preprocessors: {
+      'tests/**/*tests.js': ['webpack'],
+      'tests/*tests.js': ['webpack'],
     },
 
+    webpack: {
+      resolve: {
+        root: [
+          path.join(__dirname,  './src'),
+          path.join(__dirname,  './src/framework'),
+          path.join(__dirname, './node_modules'),
+        ],
+      },
+      module: {
+        loaders: [
+          { test: /\.html/, loader: 'html-loader' },
+          { test: /\.js$/, loader: 'jstransform-loader' },
+        ]
+      },
+    },
 
     // test results reporter to use
     // possible values: 'dots', 'progress'
     // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-    reporters: ['progress'],
+    reporters: ['html'],
 
 
     // web server port
-    port: 9876,
+    port: 9888,
 
 
     // enable / disable colors in the output (reporters and logs)
@@ -47,7 +65,7 @@ module.exports = function(config) {
 
     // level of logging
     // possible values: config.LOG_DISABLE || config.LOG_ERROR || config.LOG_WARN || config.LOG_INFO || config.LOG_DEBUG
-    logLevel: config.LOG_INFO,
+    logLevel: config.LOG_WARN,
 
 
     // enable / disable watching file and executing tests whenever any file changes

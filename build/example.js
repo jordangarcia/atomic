@@ -143,7 +143,7 @@
 	    this.__rootVM = new Vue()
 
 	    // list of all module ids
-	    this.__modules = []
+	    this.__runningModules = []
 
 	    this.__beforeRunFns = []
 
@@ -184,12 +184,11 @@
 	      throw new Error("Cannot attach module at this[" + id + "]")
 	    }
 
-
 	    logging.log('module started', id, module)
 
 	    module.start(this)
 
-	    this.__modules.push(id)
+	    this.__runningModules[id] = module
 
 	    // expose whatever the module wanted to export
 	    this[id] = module.getExports(this)
@@ -205,7 +204,12 @@
 	   * @param {object} module
 	   */
 	  App.prototype.detachModule=function(id) {"use strict";
-	    var module = this[id]
+	    if (!this.__runningModules[id]) {
+	      logging.warn("Cannot stop non-running module: " + id)
+	      return
+	    }
+
+	    var module = this.__runningModules[id]
 
 	    if (module.stop) {
 	      module.stop(module)
@@ -301,6 +305,10 @@
 	   */
 	  App.prototype.registerFilter=function(id, filter) {"use strict";
 	    this.__rootVM.$options.filters[id] = filter
+	  };
+
+	  App.prototype.reset=function() {"use strict";
+	    // TODO: implement
 	  };
 
 	  /**
@@ -9596,18 +9604,18 @@
 
 	var Immutable = __webpack_require__(40)
 	var Map = Immutable.Map
-	var logging = __webpack_require__(80)
-	var ChangeObserver = __webpack_require__(81)
-	var ChangeEmitter = __webpack_require__(82)
+	var logging = __webpack_require__(82)
+	var ChangeObserver = __webpack_require__(83)
+	var ChangeEmitter = __webpack_require__(84)
 	var Getter = __webpack_require__(37)
 	var KeyPath = __webpack_require__(38)
 	var evaluate = __webpack_require__(39)
 
 	// helper fns
 	var toJS = __webpack_require__(34).toJS
-	var coerceArray = __webpack_require__(83).coerceArray
-	var each = __webpack_require__(83).each
-	var partial = __webpack_require__(83).partial
+	var coerceArray = __webpack_require__(81).coerceArray
+	var each = __webpack_require__(81).each
+	var partial = __webpack_require__(81).partial
 
 
 	/**
@@ -9899,10 +9907,10 @@
 	var Map = __webpack_require__(40).Map
 	var Getter = __webpack_require__(37)
 	var evaluate = __webpack_require__(39)
-	var hasChanged = __webpack_require__(84)
+	var hasChanged = __webpack_require__(80)
 
 	var KeyPath = __webpack_require__(38)
-	var each = __webpack_require__(83).each
+	var each = __webpack_require__(81).each
 	var toImmutable = __webpack_require__(34).toImmutable
 
 	/**
@@ -10033,8 +10041,8 @@
 	var KeyPath = __webpack_require__(38)
 	var Immutable = __webpack_require__(40)
 	var Record = Immutable.Record
-	var isFunction = __webpack_require__(83).isFunction
-	var isArray = __webpack_require__(83).isArray
+	var isFunction = __webpack_require__(81).isFunction
+	var isArray = __webpack_require__(81).isArray
 
 	var identity = function(x)  {return x;}
 
@@ -10165,10 +10173,10 @@
 /* 38 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var isArray = __webpack_require__(83).isArray
-	var isNumber = __webpack_require__(83).isNumber
-	var isString = __webpack_require__(83).isString
-	var isFunction = __webpack_require__(83).isFunction
+	var isArray = __webpack_require__(81).isArray
+	var isNumber = __webpack_require__(81).isNumber
+	var isString = __webpack_require__(81).isString
+	var isFunction = __webpack_require__(81).isFunction
 	/**
 	 * Coerces a string/array into an array keypath
 	 */
@@ -23085,6 +23093,68 @@
 /* 80 */
 /***/ function(module, exports, __webpack_require__) {
 
+	var Iterable = __webpack_require__(40).Iterable
+
+	/**
+	 * Takes a prevState and currState and returns true if any
+	 * of the values at those paths changed
+	 * @param {Immutable.Map} prevState
+	 * @param {Immutable.Map} currState
+	 * @param {Array<Array<String>>} keyPaths
+	 *
+	 * @return {boolean}
+	 */
+	module.exports = function(prevState, currState, keyPaths) {
+	  if (!Iterable.isIterable(prevState) || !Iterable.isIterable(currState)) {
+	    // prev or current state is some primitive
+	    return prevState !== currState
+	  }
+
+	  return keyPaths.some(function(keyPath) {
+	    return prevState.getIn(keyPath) !== currState.getIn(keyPath)
+	  })
+	}
+
+
+/***/ },
+/* 81 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var _ = __webpack_require__(96);
+
+	exports.clone = _.clone
+
+	exports.extend = _.extend
+
+	exports.each = _.each
+
+	exports.partial = _.partial
+
+	exports.isArray = _.isArray
+
+	exports.isFunction = _.isFunction
+
+	exports.isString = _.isString
+
+	exports.isNumber = _.isNumber
+
+	/**
+	 * Ensures that the inputted value is an array
+	 * @param {*} val
+	 * @return {array}
+	 */
+	exports.coerceArray = function(val) {
+	  if (!exports.isArray(val)) {
+	    return [val]
+	  }
+	  return val
+	}
+
+
+/***/ },
+/* 82 */
+/***/ function(module, exports, __webpack_require__) {
+
 	/**
 	 * Wraps a Reactor.react invocation in a console.group
 	*/
@@ -23109,15 +23179,15 @@
 
 
 /***/ },
-/* 81 */
+/* 83 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Getter = __webpack_require__(37)
 	var evaluate = __webpack_require__(39)
-	var hasChanged = __webpack_require__(84)
-	var coerceArray = __webpack_require__(83).coerceArray
+	var hasChanged = __webpack_require__(80)
+	var coerceArray = __webpack_require__(81).coerceArray
 	var KeyPath = __webpack_require__(38)
-	var clone = __webpack_require__(83).clone
+	var clone = __webpack_require__(81).clone
 
 	/**
 	 * ChangeObserver is an object that contains a set of subscriptions
@@ -23183,7 +23253,7 @@
 
 
 /***/ },
-/* 82 */
+/* 84 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var EventEmitter = __webpack_require__(98).EventEmitter
@@ -23220,68 +23290,6 @@
 
 
 	module.exports = ChangeEmitter
-
-
-/***/ },
-/* 83 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var _ = __webpack_require__(96);
-
-	exports.clone = _.clone
-
-	exports.extend = _.extend
-
-	exports.each = _.each
-
-	exports.partial = _.partial
-
-	exports.isArray = _.isArray
-
-	exports.isFunction = _.isFunction
-
-	exports.isString = _.isString
-
-	exports.isNumber = _.isNumber
-
-	/**
-	 * Ensures that the inputted value is an array
-	 * @param {*} val
-	 * @return {array}
-	 */
-	exports.coerceArray = function(val) {
-	  if (!exports.isArray(val)) {
-	    return [val]
-	  }
-	  return val
-	}
-
-
-/***/ },
-/* 84 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var Iterable = __webpack_require__(40).Iterable
-
-	/**
-	 * Takes a prevState and currState and returns true if any
-	 * of the values at those paths changed
-	 * @param {Immutable.Map} prevState
-	 * @param {Immutable.Map} currState
-	 * @param {Array<Array<String>>} keyPaths
-	 *
-	 * @return {boolean}
-	 */
-	module.exports = function(prevState, currState, keyPaths) {
-	  if (!Iterable.isIterable(prevState) || !Iterable.isIterable(currState)) {
-	    // prev or current state is some primitive
-	    return prevState !== currState
-	  }
-
-	  return keyPaths.some(function(keyPath) {
-	    return prevState.getIn(keyPath) !== currState.getIn(keyPath)
-	  })
-	}
 
 
 /***/ },

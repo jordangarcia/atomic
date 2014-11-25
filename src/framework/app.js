@@ -34,7 +34,7 @@ class App {
     this.__rootVM = new Vue()
 
     // list of all module ids
-    this.__modules = []
+    this.__runningModules = []
 
     this.__beforeRunFns = []
 
@@ -75,12 +75,11 @@ class App {
       throw new Error("Cannot attach module at this[" + id + "]")
     }
 
-
     logging.log('module started', id, module)
 
     module.start(this)
 
-    this.__modules.push(id)
+    this.__runningModules[id] = module
 
     // expose whatever the module wanted to export
     this[id] = module.getExports(this)
@@ -96,7 +95,12 @@ class App {
    * @param {object} module
    */
   detachModule(id) {
-    var module = this[id]
+    if (!this.__runningModules[id]) {
+      logging.warn("Cannot stop non-running module: " + id)
+      return
+    }
+
+    var module = this.__runningModules[id]
 
     if (module.stop) {
       module.stop(module)
@@ -192,6 +196,10 @@ class App {
    */
   registerFilter(id, filter) {
     this.__rootVM.$options.filters[id] = filter
+  }
+
+  reset() {
+    // TODO: implement
   }
 
   /**

@@ -1,27 +1,39 @@
-# The Atomic Editor
+# The Atomic Framework
 
-Trivializing iframes...
+A web decoupled, immutable web framework on top of VueJS + NuclearJS
 
-## Usage
+#### Features
 
-#### Installation
+- Built on top of Immutable Flux Architecture ([NuclearJS](https://github.com/optimizely/nuclear-js))
+
+- Stateless UI components using VueJS and a dead simply Flux to Vue syncing mechanic
+
+- Push state routing using express-like middleware
+
+- Common UI components out of the box - dialogs, loading indicators, notifications and more
+
+- Easy end-to-end integration testing in Javascript - no Selenium required!
+
+- Extensible module system to create decoupled applications
+
+- AMD component hotloading - load large templates on demand
+
+## Installation
 
 ```sh
 npm install
 ```
 
-**Starting**
+**To run tests**
+
+```sh
+npm test
+```
+
+**To run example app**: http://localhost:1337
 
 ```sh
 gulp
 ```
 
-Will start a webserver for innie/outtie and do a webpack watch on both of the js bundles
-
-(`npm install -g gulp` if you dont have gulp)
-
-`http://localhost:8001/`
-
-## Docs
-
-- [Editor Messages](./docs/editor-messages.md)
+## More Coming Soon...
