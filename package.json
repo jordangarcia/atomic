@@ -38,6 +38,8 @@
     "karma-chrome-launcher": "^0.1.5",
     "jasmine-core": "^2.1.2",
     "karma-jasmine": "^0.3.1",
-    "lego": "git+ssh://git@github.com:optimizely/lego"
+    "lego": "git+ssh://git@github.com:optimizely/lego",
+    "express": "^4.10.4",
+    "gulp-express": "^0.1.1"
   }
 }

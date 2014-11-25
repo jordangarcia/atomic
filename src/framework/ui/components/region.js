@@ -12,5 +12,9 @@ module.exports = {
 
   ready() {
     this.$sync('region', ['ui/regions', this.$el.id])
+    debugger
+    this.$options.reactor.observe(['ui/regions', this.$el.id], function() {
+      debugger
+    })
   }
 }

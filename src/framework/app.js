@@ -57,6 +57,8 @@ class App {
    * @param {object} options
    */
   run(options) {
+    logging.log("Running app with: ", options)
+
     validateRunOptions(options)
 
     while(this.__beforeRunFns.length > 0) {

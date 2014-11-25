@@ -7,15 +7,15 @@ app.registerComponent('editor', require('./modules/editor/editor-component'))
 app.router.defineRoutes([
   {
     match: '/',
-    handlers: [
-      (ctx) => app.ui.showComponent('workspace', 'dashboard'),
-    ]
+    handle: [
+      () => app.ui.showComponent('workspace', 'dashboard')
+    ],
   },
   {
     match: '/editor',
-    handlers: [
-      (ctx) => app.ui.showComponent('workspace', 'editor'),
-    ]
+    handle: [
+      () => app.ui.showComponent('workspace', 'editor')
+    ],
   }
 ])
 
