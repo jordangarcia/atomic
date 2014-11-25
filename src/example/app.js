@@ -1,8 +1,28 @@
-var Atomic = require('./framework')
-var exampleModule = require('./modules/example-module')
-
+var Atomic = require('../framework')
 var app = Atomic()
 
-app.attachModule('example', exampleModule);
+app.registerComponent('dashboard', require('./modules/dashboard/dashboard-component'))
+app.registerComponent('editor', require('./modules/editor/editor-component'))
 
-app.start()
+app.router.defineRoutes([
+  {
+    match: '/',
+    handlers: [
+      (ctx) => app.ui.showComponent('workspace', 'dashboard'),
+    ]
+  },
+  {
+    match: '/editor',
+    handlers: [
+      (ctx) => app.ui.showComponent('workspace', 'editor'),
+    ]
+  }
+])
+
+document.addEventListener('DOMContentLoaded', () => {
+  app.run({
+    el: '#webapp'
+  })
+})
+
+window.webapp = app

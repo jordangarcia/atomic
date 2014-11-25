@@ -2,49 +2,43 @@ var gulp = require('gulp')
 var shell = require('gulp-shell')
 var path = require('path')
 var connect = require('gulp-connect');
-var proxy = require('./proxy');
 
-var webapp = {
+var example = {
   assets: [
-    'src/webapp/**/*.css',
-    'src/webapp/index.html',
-    'src/webapp/**/*.woff'
+    'src/example/**/*.css',
+    'src/example/index.html',
+    'src/example/**/*.woff'
   ],
-  dist: path.join(__dirname, './dist'),
+  dist: path.join(__dirname, './build'),
 }
 
-gulp.task('webapp:copy', function() {
-  gulp.src(webapp.assets)
-  .pipe(gulp.dest(webapp.dist));
+gulp.task('example:copy', function() {
+  gulp.src(example.assets)
+  .pipe(gulp.dest(example.dist));
 });
 
-gulp.task('webapp:watch:assets', function() {
-  gulp.watch(webapp.assets, ['webapp:copy'])
+gulp.task('example:watch:assets', function() {
+  gulp.watch(example.assets, ['example:copy'])
 })
 
-gulp.task('webapp:connect', function() {
+gulp.task('example:connect', function() {
   connect.server({
-    root: webapp.dist,
-    port: 8001
+    root: example.dist,
+    port: 1337
   });
-})
-
-gulp.task('proxy:connect', function() {
-  proxy()
 })
 
 gulp.task('webpack:watch', shell.task([
   'webpack --progress --colors -w'
 ]));
 
-gulp.task('webapp', [
-  'webapp:copy',
-  'webapp:connect',
-  'webapp:watch:assets',
-  'proxy:connect',
+gulp.task('example', [
+  'example:copy',
+  'example:connect',
+  'example:watch:assets',
   'webpack:watch',
 ])
 
 gulp.task('default', function() {
-  gulp.start('webapp')
+  gulp.start('example')
 });

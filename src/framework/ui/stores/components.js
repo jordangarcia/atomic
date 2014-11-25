@@ -4,7 +4,7 @@ var Store = require('nuclear-js').Store
 module.exports = Store({
   getInitialState() {
     return {}
-  }
+  },
 
   initialize() {
     this.on(actionTypes.REGISTER_COMPONENT, registerComponent)

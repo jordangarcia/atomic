@@ -1,11 +1,12 @@
+var _ = require('lodash')
 var Vue = require('vue')
 var Nuclear = require('nuclear-js')
-var Map = require('immutable').Map
 var List = require('immutable').List
+var logging = require('./logging')
+var vueSyncMixin = require('./vue-sync-mixin')
 
 var coreModules = {
   ui: require('./ui'),
-  routing: require('./ui'),
 }
 
 function validateRunOptions(options) {
@@ -19,17 +20,23 @@ function validateRunOptions(options) {
  * Main App wrapper
  */
 class App {
-  constructor() {
-    this.radio = require('radio')
+  constructor(config) {
+    if (!(this instanceof App)) {
+      return new App(config)
+    }
+    this.radio = require('./radio')
 
-    this.__reactor = Nuclear.Reactor()
+    /**
+     * Nuclear Reactor with framework core stores
+     */
+    this.reactor = Nuclear.Reactor()
+
+    this.router = require('./router')
 
     // rootVM holds all Vue related things such as components, directives, filters, etc
     this.__rootVM = new Vue()
 
-    this.__routes = {}
-
-    this.__modules = {}
+    //this.__modules = {}
 
     this.__beforeRunFns = []
 
@@ -37,7 +44,11 @@ class App {
 
     // setup link between radio and Nuclear Reactor
     this.radio.comply('dispatch', (type, payload) => {
-      this.__reactor.dispatch(type, payload)
+      this.reactor.dispatch(type, payload)
+    })
+
+    _.each(coreModules, (module, id) => {
+      this.attachModule(id, module)
     })
   }
 
@@ -54,6 +65,8 @@ class App {
 
     this.__rootVM.$mount(options.el)
 
+    this.router.start()
+
     while(this.__afterRunFns.length > 0) {
       this.__afterRunFns.shift()(this)
     }
@@ -68,6 +81,8 @@ class App {
     if (this[id]) {
       throw new Error("Cannot attach module at this[" + id + "]")
     }
+
+    logging.log('module started', id, module)
 
     module.start(this)
 
@@ -100,7 +115,7 @@ class App {
    * @param {object|*} payload
    */
   dispatch(actionType, payload) {
-    this.__reactor.dispatch(actionType, payload)
+    this.reactor.dispatch(actionType, payload)
   }
 
   /**
@@ -130,7 +145,7 @@ class App {
    * Registers a Nuclear store on the Nuclear Reactor
    */
   registerStore(id, store) {
-    this.__reactor.attachStore(id, store)
+    this.reactor.attachStore(id, store)
   }
 
   /**
@@ -139,7 +154,17 @@ class App {
    * @param {object} component
    */
   registerComponent(id, component) {
-    this.__rootVM.$options.components[id] = component
+    component = _.cloneDeep(component)
+    // inject the sync mixin to allow reactor data syncing
+    if (component.mixins) {
+      component.mixins.unshift(vueSyncMixin)
+    } else {
+      component.mixins = [vueSyncMixin]
+    }
+
+    component.reactor = this.reactor
+
+    this.__rootVM.$options.components[id] = Vue.extend(component)
   }
 
   /**

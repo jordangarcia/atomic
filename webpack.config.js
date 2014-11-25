@@ -3,7 +3,8 @@ var path = require('path')
 
 module.exports = {
   entry: {
-    framework: './src/framework/index.js',
+    //framework: './src/framework/index.js',
+    example: './src/example/app.js',
   },
   output: {
     path: path.join(__dirname, "build/"),
@@ -26,6 +27,7 @@ module.exports = {
     ],
 
     loaders: [
+      { test: /\.html/, loader: 'html-loader' },
       { test: /\.js$/, loader: 'jstransform-loader' },
       //{ test: /\.js$/, loader: 'traceur-loader?runtime' },
       { test: /\.css$/, loaders: ["style", "css"] },

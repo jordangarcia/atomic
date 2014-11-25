@@ -1,7 +1,5 @@
 module.exports = {
-  template: require('html!./region.html'),
-
-  replace: true,
+  template: require('./region.html'),
 
   data() {
     return {
@@ -13,6 +11,6 @@ module.exports = {
   },
 
   ready() {
-    this.$sync('region', ['ui/regions', this.el.id])
+    this.$sync('region', ['ui/regions', this.$el.id])
   }
 }

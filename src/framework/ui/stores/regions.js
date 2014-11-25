@@ -1,11 +1,11 @@
-var Map = require('immutable').Map
+var IMap = require('immutable').Map
 var actionTypes = require('../action-types')
 var Store = require('nuclear-js').Store
 
 module.exports = Store({
   getInitialState() {
     return {}
-  }
+  },
 
   initialize() {
     this.on(actionTypes.INIT_REGION, initRegion)
@@ -21,11 +21,10 @@ module.exports = Store({
  * payload.regionId
  */
 function initRegion(state, payload) {
-  return state.set(payload.regionId, Map({
+  return state.set(payload.regionId, IMap({
     regionId: payload.regionId,
-    shown: false,
+    isVisible: !!payload.isVisible,
     componentId: null,
-    componentData: null,
   }))
 }
 
@@ -33,14 +32,12 @@ function initRegion(state, payload) {
  * Shows a component on a region
  * payload.regionId
  * payload.componentId
- * payload.componentData
  */
 function showComponent(state, payload) {
-  return state.set(payload.regionId, Map({
+  return state.set(payload.regionId, IMap({
     regionId: payload.regionId,
-    shown: false,
+    isVisible: !!payload.isVisible,
     componentId: payload.componentId,
-    componentData: payload.componentData,
   }))
 }
 
