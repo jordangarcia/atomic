@@ -162,12 +162,13 @@ class App {
   }
 
   /**
-   * Registers a global Vue Component
-   * @param {string} id
-   * @param {object} component
+   * Returns a component with the NuclearVueMixin
    */
-  registerComponent(id, component) {
-    component = _.cloneDeep(component)
+  createComponent(spec) {
+    if (typeof spec === 'function') {
+      return spec
+    }
+    var component = _.cloneDeep(spec)
     // inject the sync mixin to allow reactor data syncing
     if (component.mixins) {
       component.mixins.unshift(nuclearVueMixin(this.reactor))
@@ -175,7 +176,16 @@ class App {
       component.mixins = [nuclearVueMixin(this.reactor)]
     }
 
-    this.__rootVM.$options.components[id] = Vue.extend(component)
+    return Vue.extend(component)
+  }
+
+  /**
+   * Registers a global Vue Component
+   * @param {string} id
+   * @param {object} component
+   */
+  registerComponent(id, component) {
+    this.__rootVM.$options.components[id] = this.createComponent(component)
   }
 
   /**

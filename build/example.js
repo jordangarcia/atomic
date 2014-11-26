@@ -271,12 +271,13 @@
 	  };
 
 	  /**
-	   * Registers a global Vue Component
-	   * @param {string} id
-	   * @param {object} component
+	   * Returns a component with the NuclearVueMixin
 	   */
-	  App.prototype.registerComponent=function(id, component) {"use strict";
-	    component = _.cloneDeep(component)
+	  App.prototype.createComponent=function(spec) {"use strict";
+	    if (typeof spec === 'function') {
+	      return spec
+	    }
+	    var component = _.cloneDeep(spec)
 	    // inject the sync mixin to allow reactor data syncing
 	    if (component.mixins) {
 	      component.mixins.unshift(nuclearVueMixin(this.reactor))
@@ -284,7 +285,16 @@
 	      component.mixins = [nuclearVueMixin(this.reactor)]
 	    }
 
-	    this.__rootVM.$options.components[id] = Vue.extend(component)
+	    return Vue.extend(component)
+	  };
+
+	  /**
+	   * Registers a global Vue Component
+	   * @param {string} id
+	   * @param {object} component
+	   */
+	  App.prototype.registerComponent=function(id, component) {"use strict";
+	    this.__rootVM.$options.components[id] = this.createComponent(component)
 	  };
 
 	  /**
