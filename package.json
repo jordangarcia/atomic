@@ -1,15 +1,15 @@
 {
   "name": "atomic-js",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Atomic web framework built on top of NuclearJS & VueJS",
-  "main": "index.js",
+  "main": "src/framework/index.js",
   "scripts": {
     "test": "karma start --single-run --reporters=progress --log-level error",
     "test-browser": "karma start"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/optimizely/atomic"
+    "url": "git://github.com/jordangarcia/atomic"
   },
   "author": "Jordan Garcia",
   "license": "ISC",
