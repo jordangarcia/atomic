@@ -19,6 +19,7 @@
   "homepage": "https://github.com/jordangarcia/atomic",
   "dependencies": {
     "nuclear-js": "^0.4.x",
+    "nuclear-vue-mixin": "^0.2.x",
     "vue": "^0.11.x",
     "lodash": "^2.4.1",
     "immutable": "^3.0.3",

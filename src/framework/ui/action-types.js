@@ -1,4 +1,4 @@
-var prefixConstants = require('framework/utils/prefix-constants')
+var prefixConstants = require('../utils/prefix-constants')
 
 module.exports = prefixConstants('UI', {
   LOADING_START: null,

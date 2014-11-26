@@ -2,7 +2,7 @@ var _ = require('lodash')
 var Vue = require('vue')
 var Nuclear = require('nuclear-js')
 var logging = require('./logging')
-var vueSyncMixin = require('./vue-sync-mixin')
+var nuclearVueMixin = require('nuclear-vue-mixin')
 
 var coreModules = {
   ui: require('./ui'),
@@ -170,12 +170,10 @@ class App {
     component = _.cloneDeep(component)
     // inject the sync mixin to allow reactor data syncing
     if (component.mixins) {
-      component.mixins.unshift(vueSyncMixin)
+      component.mixins.unshift(nuclearVueMixin(this.reactor))
     } else {
-      component.mixins = [vueSyncMixin]
+      component.mixins = [nuclearVueMixin(this.reactor)]
     }
-
-    component.reactor = this.reactor
 
     this.__rootVM.$options.components[id] = Vue.extend(component)
   }

@@ -111,7 +111,7 @@
 	var Vue = __webpack_require__(12)
 	var Nuclear = __webpack_require__(13)
 	var logging = __webpack_require__(5)
-	var vueSyncMixin = __webpack_require__(6)
+	var nuclearVueMixin = __webpack_require__(99)
 
 	var coreModules = {
 	  ui: __webpack_require__(9),
@@ -279,12 +279,10 @@
 	    component = _.cloneDeep(component)
 	    // inject the sync mixin to allow reactor data syncing
 	    if (component.mixins) {
-	      component.mixins.unshift(vueSyncMixin)
+	      component.mixins.unshift(nuclearVueMixin(this.reactor))
 	    } else {
-	      component.mixins = [vueSyncMixin]
+	      component.mixins = [nuclearVueMixin(this.reactor)]
 	    }
-
-	    component.reactor = this.reactor
 
 	    this.__rootVM.$options.components[id] = Vue.extend(component)
 	  };
@@ -358,66 +356,7 @@
 
 
 /***/ },
-/* 6 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var Nuclear = __webpack_require__(13)
-	var logging = __webpack_require__(5)
-
-	module.exports = {
-	  methods: {
-	    /**
-	     * Syncs a reactor.get(getter) value with a vm data property
-	     * @param {string} vmProp
-	     * @param {Getter|KeyPath} getter
-	     */
-	    $sync:function(vmProp, getter) {
-	      if (!Nuclear.Getter.isGetter(getter) &&
-	          !Nuclear.KeyPath.isKeyPath(getter)) {
-
-	        logging.warn('Must supply a KeyPath or Getter to getDataBindings()')
-	        return
-	      }
-
-	      logging.log("Setting up sync", vmProp, getter)
-	      var reactor = this.$options.reactor
-	      this.$set(vmProp, reactor.getJS(getter))
-	      // setup the data observation
-	      var unwatchFn = reactor.observe(getter, function(val)  {
-	        this.$set(vmProp, Nuclear.toJS(val))
-	      }.bind(this))
-	      this.__reactorUnwatchFns.push(unwatchFn)
-	    }
-	  },
-
-	  created: function() {
-	    if (!this.$options.reactor) {
-	      throw new Error("Must supply reactor to ViewModel")
-	    }
-
-	    this.__reactorUnwatchFns = []
-
-	    if (!this.$options.getDataBindings) {
-	      return
-	    }
-
-	    var dataBindings = this.$options.getDataBindings()
-	    var reactor = this.$options.reactor
-
-	    _.each(dataBindings, function(reactorKeyPath, vmProp)  {
-	      this.$sync(vmProp, reactorKeyPath)
-	    }.bind(this))
-
-	    this.$on('destroyed', function() {
-	      while (this.__reactorUnwatchFns.length) {
-	        this.__reactorUnwatchFns.shift()()
-	      }
-	    })
-	  }
-	}
-
-
-/***/ },
+/* 6 */,
 /* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -32119,6 +32058,84 @@
 
 	function isUndefined(arg) {
 	  return arg === void 0;
+	}
+
+
+/***/ },
+/* 99 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = __webpack_require__(100)
+
+
+/***/ },
+/* 100 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Nuclear = __webpack_require__(13)
+	var Computed = __webpack_require__(13).Computed
+
+	/**
+	 * VueJS mixin to bind to a NuclearJS reactor
+	 *
+	 * Usage:
+	 *
+	 * new Vue({
+	 *   mixin: [NuclearVue(reactor)],
+	 *
+	 *   // implement to keep VM data in sync with reactor data
+	 *   getDataBindings() {
+	 *     return {
+	 *       'user': 'currentUser',
+	 *
+	 *       // can reference deep paths in App State Map
+	 *       'filters': 'ui.filters',
+	 *       // or by array 'filters': ['ui', 'filters'],
+	 *     }
+	 *   }
+	 * })
+	 */
+	module.exports = function(reactor) {
+	  return {
+	    created: function() {
+	      if (!this.$options.getDataBindings) {
+	        return
+	      }
+
+	      var vm = this
+	      var dataBindings = this.$options.getDataBindings()
+	      var changeObserver = reactor.createChangeObserver()
+
+	      each(dataBindings, function(reactorKeyPath, vmProp) {
+	        if (Computed.isComputed(reactorKeyPath)) {
+	          // TODO refactor to Reactor.get(computed)
+	          var val = Nuclear.toJS(Computed.evaluate(reactor.get(), reactorKeyPath))
+	          vm.$set(vmProp, val)
+
+	          changeObserver.onChange(reactorKeyPath.flatDeps, function() {
+	            var val = Nuclear.toJS(Computed.evaluate(reactor.get(), reactorKeyPath))
+	            vm.$set(vmProp, val)
+	          })
+	        } else {
+	          vm.$set(vmProp, reactor.getJS(reactorKeyPath))
+
+	          changeObserver.onChange(reactorKeyPath, function(val) {
+	            vm.$set(vmProp, reactor.getJS(reactorKeyPath))
+	          })
+	        }
+	      })
+
+	      this.$on('destroyed', function() {
+	        changeObserver.destroy()
+	      })
+	    }
+	  }
+	}
+
+	function each(arr, fn) {
+	  for (var key in arr) {
+	    fn(arr[key], key)
+	  }
 	}
 
 
